@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>aritmetica binaria: soma, sub, comp2</title>
+
+  <!-- reveal.js via cdn -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css">
+  <style>
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .box { border: 1px solid #666; border-radius: 10px; padding: 12px; }
+    input, select, button { font-size: 0.9em; padding: 6px 8px; }
+    pre { white-space: pre; }
+  </style>
+</head>
+
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <section data-markdown>
+      <textarea data-template>
+# aritmetica binaria
+## soma, subtracao, complemento de dois, overflow
+
+- hoje: entender carry, borrow e comp2
+- no final: fazer `a - b` virando `a + comp2(b)`
+      </textarea>
+    </section>
+
+    <section data-markdown>
+      <textarea data-template>
+## soma binaria (1 bit)
+
+regras basicas:
+
+- 0 + 0 = 0
+- 0 + 1 = 1
+- 1 + 0 = 1
+- 1 + 1 = 10 (soma 0, carry 1)
+
+vamos usar isso bit a bit da direita para a esquerda.
+      </textarea>
+    </section>
+
+    <section>
+      <h2>soma com carry (interativo)</h2>
+      <div class="box">
+        <div>
+          <label>a: </label><input id="a" value="0101" class="mono" />
+          <label>b: </label><input id="b" value="0011" class="mono" />
+          <label>bits: </label>
+          <select id="n">
+            <option>4</option><option selected>8</option><option>16</option>
+          </select>
+          <button onclick="runAdd()">somar</button>
+        </div>
+        <p id="err" style="color:#ff8080;"></p>
+        <pre id="out" class="mono"></pre>
+      </div>
+      <p style="font-size:0.7em; opacity:0.8;">
+        dica: observe o carry entrando em cada coluna e o carry-out do msb.
+      </p>
+    </section>
+
+    <section data-markdown>
+      <textarea data-template>
+## overflow (unsigned)
+
+em **unsigned** (sem sinal), overflow na soma:
+- acontece se existe carry-out do msb (um bit a mais alem de n)
+
+exemplo 4 bits:
+- 1111 (15) + 0001 (1) = 1 0000 (16) -> nao cabe em 4 bits
+      </textarea>
+    </section>
+
+    <section data-markdown>
+      <textarea data-template>
+## subtracao com borrow
+
+regras importantes:
+- 1 - 1 = 0
+- 1 - 0 = 1
+- 0 - 0 = 0
+- 0 - 1: precisa borrow (pega 1 da esquerda, vira +2 nesta coluna)
+
+borrow e "emprestimo": redistribui valor entre bits.
+      </textarea>
+    </section>
+
+    <section data-markdown>
+      <textarea data-template>
+## complemento de dois (comp2)
+
+para n bits:
+- comp1(x): inverter bits
+- comp2(x): comp1(x) + 1
+
+subtracao vira soma:
+- a - b = a + comp2(b)
+
+observacao: em comp2, o carry-out final e ignorado (resultado fica em n bits).
+      </textarea>
+    </section>
+
+    <section data-markdown>
+      <textarea data-template>
+## overflow em comp2 (com sinal)
+
+regra pratica:
+- pos + pos = neg -> overflow
+- neg + neg = pos -> overflow
+- sinais diferentes -> nunca overflow
+
+msb:
+- msb 0: numero >= 0
+- msb 1: numero < 0
+      </textarea>
+    </section>
+
+    <section data-markdown>
+      <textarea data-template>
+## exercicios
+
+1) 1011 + 1100 (unsigned, 4 bits)  
+2) 1000 - 0011 (borrow, 4 bits)  
+3) 0101 - 0111 (comp2, 4 bits)  
+4) overflow? 0111 + 0001 (comp2, 4 bits)  
+      </textarea>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/markdown/markdown.js"></script>
+
+<script>
+  Reveal.initialize({ plugins: [ RevealMarkdown ] });
+
+  function isBinary(s){ return /^[01]+$/.test(s); }
+  function padToN(bits, n){
+    const cut = bits.slice(-n);
+    return cut.padStart(n, "0");
+  }
+
+  function addWithCarry(a, b){
+    const n = a.length;
+    let carry = 0;
+    let res = Array(n).fill("0");
+    let carries = Array(n).fill("0"); // carry-in por coluna
+
+    for(let i=n-1;i>=0;i--){
+      carries[i] = carry ? "1" : "0";
+      const ai = a[i]==="1" ? 1 : 0;
+      const bi = b[i]==="1" ? 1 : 0;
+      const s = ai + bi + carry;
+      res[i] = (s & 1) ? "1" : "0";
+      carry = (s >> 1) & 1;
+    }
+    return { res: res.join(""), carries: carries.join(""), carryOut: carry };
+  }
+
+  function runAdd(){
+    const err = document.getElementById("err");
+    err.textContent = "";
+
+    let a = document.getElementById("a").value.trim();
+    let b = document.getElementById("b").value.trim();
+    const n = parseInt(document.getElementById("n").value, 10);
+
+    if(!a || !b || !isBinary(a) || !isBinary(b)){
+      err.textContent = "use apenas 0 e 1 em a e b.";
+      return;
+    }
+
+    a = padToN(a, n);
+    b = padToN(b, n);
+
+    const { res, carries, carryOut } = addWithCarry(a,b);
+
+    const out =
+`carry-in: ${carries}
+      a: ${a}
+    + b: ${b}
+---------${"-".repeat(Math.max(0, n-9))}
+  result: ${res}
+carryout: ${carryOut}`;
+
+    document.getElementById("out").textContent = out;
+  }
+
+  // roda uma vez ao abrir
+  runAdd();
+</script>
+</body>
+</html>
