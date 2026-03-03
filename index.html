@@ -8,11 +8,18 @@
   <!-- reveal.js via cdn -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css">
+
   <style>
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .box { border: 1px solid #666; border-radius: 10px; padding: 12px; }
     input, select, button { font-size: 0.9em; padding: 6px 8px; }
     pre { white-space: pre; }
+
+    /* left align */
+    .reveal section { text-align: left !important; }
+    .reveal .slides { text-align: left; }
+    .reveal .slides section { align-items: flex-start !important; justify-content: flex-start !important; }
+    .reveal section { max-width: 900px; margin: 0 auto; }
   </style>
 </head>
 
@@ -22,73 +29,84 @@
 
     <section data-markdown>
       <textarea data-template>
-# aritmetica binaria
-## soma, subtracao, complemento de dois, overflow
-
-- hoje: entender carry, borrow e comp2
-- no final: fazer `a - b` virando `a + comp2(b)`
+# aritmética binária
+**soma, subtração, complemento de dois, overflow**
       </textarea>
     </section>
 
     <section data-markdown>
       <textarea data-template>
-## soma binaria (1 bit)
-
-regras basicas:
+## soma binária (1 bit)
 
 - 0 + 0 = 0
 - 0 + 1 = 1
 - 1 + 0 = 1
-- 1 + 1 = 10 (soma 0, carry 1)
+- 1 + 1 = 10
 
-vamos usar isso bit a bit da direita para a esquerda.
+vamos usar isso bit a bit, sempre da direita para a esquerda :)
       </textarea>
     </section>
 
     <section>
-      <h2>soma com carry (interativo)</h2>
+      <h3>soma com carry (interativo)</h3>
       <div class="box">
         <div>
-          <label>a: </label><input id="a" value="0101" class="mono" />
-          <label>b: </label><input id="b" value="0011" class="mono" />
+          <label>a: </label><input id="a" value="0101" class="mono"/>
+          <p></p>
+          <label>b: </label><input id="b" value="0011" class="mono"/>
           <label>bits: </label>
           <select id="n">
-            <option>4</option><option selected>8</option><option>16</option>
+            <option selected>4</option><option>8</option><option>16</option>
           </select>
           <button onclick="runAdd()">somar</button>
         </div>
         <p id="err" style="color:#ff8080;"></p>
         <pre id="out" class="mono"></pre>
       </div>
-      <p style="font-size:0.7em; opacity:0.8;">
-        dica: observe o carry entrando em cada coluna e o carry-out do msb.
-      </p>
+      <b style="font-size:0.7em; opacity:0.8;">
+        dica: observe o carry entrando em cada coluna e o carry-out do msb
+      </b>
     </section>
 
     <section data-markdown>
       <textarea data-template>
-## overflow (unsigned)
+### overflow (unsigned)
 
-em **unsigned** (sem sinal), overflow na soma:
-- acontece se existe carry-out do msb (um bit a mais alem de n)
+para valores **unsigned** (sem sinal), temos _overflow_ se existe _carry-out_ do **msb**
 
 exemplo 4 bits:
-- 1111 (15) + 0001 (1) = 1 0000 (16) -> nao cabe em 4 bits
+- 1111 (15) + 0001 (1) = 10000 (16)
       </textarea>
     </section>
 
     <section data-markdown>
       <textarea data-template>
-## subtracao com borrow
+## subtração com borrow
 
 regras importantes:
 - 1 - 1 = 0
 - 1 - 0 = 1
 - 0 - 0 = 0
-- 0 - 1: precisa borrow (pega 1 da esquerda, vira +2 nesta coluna)
-
-borrow e "emprestimo": redistribui valor entre bits.
+- 0 - 1: _borrow_
       </textarea>
+    </section>
+
+    <section>
+      <h3>calculadora: subtração (borrow direto)</h3>
+      <div class="box">
+        <div>
+          <label>a: </label><input id="sa" value="0010" class="mono"/>
+          <p></p>
+          <label>b: </label><input id="sb" value="0101" class="mono"/>
+          <label>bits: </label>
+          <select id="sn">
+            <option>4</option><option selected>8</option><option>16</option>
+          </select>
+          <button onclick="runSubBorrow()">calcular</button>
+        </div>
+        <p id="serr1" style="color:#ff8080;"></p>
+        <pre id="sout1" class="mono"></pre>
+      </div>
     </section>
 
     <section data-markdown>
@@ -99,25 +117,62 @@ para n bits:
 - comp1(x): inverter bits
 - comp2(x): comp1(x) + 1
 
-subtracao vira soma:
+subtração vira soma:
 - a - b = a + comp2(b)
+- sempre ignoramos o _carry-out_
 
-observacao: em comp2, o carry-out final e ignorado (resultado fica em n bits).
       </textarea>
+    </section>
+
+    <section>
+      <h3>calculadora: comp1 e comp2</h3>
+      <div class="box">
+        <div>
+          <label>x: </label><input id="cx" value="0101" class="mono"/>
+          <label>bits: </label>
+          <select id="cn">
+            <option selected>4</option><option>8</option><option>16</option>
+          </select>
+          <button onclick="runComp()">calcular</button>
+        </div>
+        <p id="cerr" style="color:#ff8080;"></p>
+        <pre id="cout" class="mono"></pre>
+      </div>
+    </section>
+
+    <!-- subtracao: com comp2 -->
+    <section>
+      <h3>calculadora: subtração com comp2</h3>
+      <div class="box">
+        <div>
+          <label>a: </label><input id="sa2" value="0010" class="mono"/>
+            <p></p>
+          <label>b: </label><input id="sb2" value="0101" class="mono"/>
+          <label>bits: </label>
+          <select id="sn2">
+            <option selected>4</option><option>8</option><option>16</option>
+          </select>
+          <button onclick="runSubComp2()">calcular</button>
+        </div>
+        <p id="serr2" style="color:#ff8080;"></p>
+        <pre id="sout2" class="mono"></pre>
+      </div>
+      <b style="font-size:0.7em; opacity:0.8;">
+      </b>
     </section>
 
     <section data-markdown>
       <textarea data-template>
-## overflow em comp2 (com sinal)
+## _overflow_ em comp2 (com sinal)
 
-regra pratica:
-- pos + pos = neg -> overflow
-- neg + neg = pos -> overflow
-- sinais diferentes -> nunca overflow
+regra prática:
+- pos + pos = neg -> _overflow_
+- neg + neg = pos -> _overflow_
+- sinais diferentes -> nunca _overflow_
 
-msb:
-- msb 0: numero >= 0
-- msb 1: numero < 0
+_most significant bit_:
+- _msb_ 0: n >= 0
+- _msb_ 1: n < 0
       </textarea>
     </section>
 
@@ -125,10 +180,10 @@ msb:
       <textarea data-template>
 ## exercicios
 
-1) 1011 + 1100 (unsigned, 4 bits)  
-2) 1000 - 0011 (borrow, 4 bits)  
+1) 1011 + 1100 (_unsigned_, 4 bits)  
+2) 1000 - 0011 (_borrow_, 4 bits)  
 3) 0101 - 0111 (comp2, 4 bits)  
-4) overflow? 0111 + 0001 (comp2, 4 bits)  
+4) 0111 + 0001 (comp2, 4 bits)
       </textarea>
     </section>
 
@@ -151,7 +206,7 @@ msb:
     const n = a.length;
     let carry = 0;
     let res = Array(n).fill("0");
-    let carries = Array(n).fill("0"); // carry-in por coluna
+    let carries = Array(n).fill("0");
 
     for(let i=n-1;i>=0;i--){
       carries[i] = carry ? "1" : "0";
@@ -173,7 +228,7 @@ msb:
     const n = parseInt(document.getElementById("n").value, 10);
 
     if(!a || !b || !isBinary(a) || !isBinary(b)){
-      err.textContent = "use apenas 0 e 1 em a e b.";
+      err.textContent = "use apenas 0 e 1 em a e b";
       return;
     }
 
@@ -183,18 +238,163 @@ msb:
     const { res, carries, carryOut } = addWithCarry(a,b);
 
     const out =
-`carry-in: ${carries}
-      a: ${a}
-    + b: ${b}
----------${"-".repeat(Math.max(0, n-9))}
-  result: ${res}
-carryout: ${carryOut}`;
+` c-in: ${carries}
+    a: ${a}
+  + b: ${b}
+------${"-".repeat(Math.max(0, n-9))}
+  res: ${res}
+c-out: ${carryOut}`;
 
     document.getElementById("out").textContent = out;
   }
 
-  // roda uma vez ao abrir
+  function onesComp(bits){
+    return bits.split("").map(c => c === "0" ? "1" : "0").join("");
+  }
+
+  function twosComp(bits){
+    const n = bits.length;
+    const inv = onesComp(bits).split("");
+    let carry = 1;
+    for(let i=n-1;i>=0;i--){
+      const b = inv[i] === "1" ? 1 : 0;
+      const s = b + carry;
+      inv[i] = (s & 1) ? "1" : "0";
+      carry = (s >> 1) & 1;
+    }
+    return inv.join("");
+  }
+
+  function binToUnsigned(bits){
+    return parseInt(bits, 2);
+  }
+
+  function binToTc(bits){
+    const n = bits.length;
+    const u = parseInt(bits, 2);
+    const msb = (u >>> (n - 1)) & 1;
+    return msb === 0 ? u : (u - (1 << n));
+  }
+
+  function subWithBorrow(a, b){
+    const n = a.length;
+    let borrow = 0;
+    let res = Array(n).fill("0");
+
+    for(let i=n-1;i>=0;i--){
+      let ai = a[i] === "1" ? 1 : 0;
+      const bi = b[i] === "1" ? 1 : 0;
+
+      ai -= borrow;
+
+      if(ai < bi){
+        ai += 2;
+        borrow = 1;
+      } else {
+        borrow = 0;
+      }
+
+      res[i] = (ai - bi) ? "1" : "0";
+    }
+
+    return { res: res.join(""), borrowOut: borrow };
+  }
+
+  function runComp(){
+    const err = document.getElementById("cerr");
+    err.textContent = "";
+
+    let x = document.getElementById("cx").value.trim();
+    const n = parseInt(document.getElementById("cn").value, 10);
+
+    if(!x || !isBinary(x)){
+      err.textContent = "use apenas 0 e 1 em x";
+      return;
+    }
+
+    x = padToN(x, n);
+
+    const c1 = onesComp(x);
+    const c2 = twosComp(x);
+
+    const out =
+`x:     ${x}
+comp1: ${c1}
+comp2: ${c2}
+
+unsigned(x): ${binToUnsigned(x)}
+tc(x):       ${binToTc(x)}`;
+
+    document.getElementById("cout").textContent = out;
+  }
+
+  function runSubBorrow(){
+    const err = document.getElementById("serr1");
+    err.textContent = "";
+
+    let a = document.getElementById("sa").value.trim();
+    let b = document.getElementById("sb").value.trim();
+    const n = parseInt(document.getElementById("sn").value, 10);
+
+    if(!a || !b || !isBinary(a) || !isBinary(b)){
+      err.textContent = "use apenas 0 e 1";
+      return;
+    }
+
+    a = padToN(a, n);
+    b = padToN(b, n);
+
+    const r = subWithBorrow(a, b);
+
+    const out =
+`a: ${a}
+b: ${b}
+res: ${r.res}
+borrow-out: ${r.borrowOut}
+
+unsigned(a): ${binToUnsigned(a)}
+unsigned(b): ${binToUnsigned(b)}
+unsigned(res): ${binToUnsigned(r.res)}`;
+
+    document.getElementById("sout1").textContent = out;
+  }
+
+  function runSubComp2(){
+    const err = document.getElementById("serr2");
+    err.textContent = "";
+
+    let a = document.getElementById("sa2").value.trim();
+    let b = document.getElementById("sb2").value.trim();
+    const n = parseInt(document.getElementById("sn2").value, 10);
+
+    if(!a || !b || !isBinary(a) || !isBinary(b)){
+      err.textContent = "use apenas 0 e 1";
+      return;
+    }
+
+    a = padToN(a, n);
+    b = padToN(b, n);
+
+    const b2 = twosComp(b);
+    const r = addWithCarry(a, b2);
+
+    const out =
+`comp2(b): ${b2}
+
+a + comp2(b): ${r.res}
+c-out: ${r.carryOut}
+
+tc(a): ${binToTc(a)}
+tc(b): ${binToTc(b)}
+tc(res): ${binToTc(r.res)}`;
+
+    document.getElementById("sout2").textContent = out;
+  }
+
   runAdd();
+  runComp();
+  runSubBorrow();
+  runSubComp2();
 </script>
 </body>
 </html>
